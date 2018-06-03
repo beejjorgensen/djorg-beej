@@ -14,18 +14,37 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.views.generic import TemplateView
 
 from rest_framework import routers
 from notes.api import NoteViewSet
 
+from graphene_django.views import GraphQLView
+
+from rest_framework.authtoken import views
+#from rest_framework_simplejwt.views import (
+#    TokenObtainPairView,
+#    TokenRefreshView,
+#    TokenVerifyView,
+#)
+
 router = routers.DefaultRouter()
 router.register(r'notes', NoteViewSet)
 
 urlpatterns = [
-    path('api/', include(router.urls)),
     path('', TemplateView.as_view(template_name='djorg_base.html')),
-    path('bookmarks/', include('bookmarks.urls')),
+
     path('admin/', admin.site.urls),
+    path('bookmarks/', include('bookmarks.urls')),
+
+    path('graphql/', GraphQLView.as_view(graphiql=True)),
+    path('api/', include(router.urls)),
+
+    #re_path(r'^api/token/$', TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    #re_path(r'^api/token/refresh$', TokenRefreshView.as_view(), name="token_refresh"),
+
+    #re_path(r'api/token/verify$', TokenVerifyView.as_view(), name="token_verify"),
+
+    re_path(r'^api-token-auth/', views.obtain_auth_token)
 ]

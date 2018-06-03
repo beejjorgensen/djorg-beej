@@ -11,6 +11,8 @@ gunicorn = "*"
 dj-database-url = "*"
 whitenoise = "*"
 djangorestframework = "*"
+graphene-django = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 pylint = "*"
