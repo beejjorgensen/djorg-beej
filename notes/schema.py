@@ -1,29 +1,32 @@
 from django.conf import settings
 from graphene_django import DjangoObjectType
 import graphene
-from .models import Note as NoteModel
+from .models import Note
 
-class Note(DjangoObjectType):
+#from graphene_django.filter import DjangoFilterConnectionField
+
+class NoteType(DjangoObjectType):
     class Meta:
-        model = NoteModel
+        model = Note
 
         # Describe the data as a node in the graph for GraphQL
         interfaces = (graphene.relay.Node, )
 
 class Query(graphene.ObjectType):
-    notes = graphene.List(Note)
+    note = graphene.Field(NoteType, id=graphene.Int(), title=graphene.String())
+    all_notes = graphene.List(NoteType)
 
-    def resolve_notes(self, info):
-        """Decide which notes to return."""
+    def resolve_all_notes(self, info, **kwargs):
+        return Note.objects.all()
 
-        user = info.context.user  # Use docs or debugger to find
+    def resolve_note(self, info, **kwargs):
+        title = kwargs.get('title')
 
-        if settings.DEBUG:
-            return NoteModel.objects.all()
-        elif user.is_anonymous:
-            return NoteModel.objects.none()
-        else:
-            return NoteModel.objects.filter(user=user)
+        if title is not None:
+            return Note.objects.get(title=title)
+
+        return None
+
 
 # Add a schema and attach the query
 schema = graphene.Schema(query=Query)
