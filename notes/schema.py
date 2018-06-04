@@ -21,12 +21,38 @@ class Query(graphene.ObjectType):
 
     def resolve_note(self, info, **kwargs):
         title = kwargs.get('title')
+        #import pdb; pdb.set_trace()
 
         if title is not None:
             return Note.objects.get(title=title)
 
         return None
 
+class CreateNote(graphene.Mutation):
+    class Arguments:
+        # Input attributes for the mutation
+        title = graphene.String()
+        content = graphene.String()
+
+    ok = graphene.Boolean()
+    note = graphene.Field(NoteType)
+
+    def mutate(self, info, title, content):
+        new_user = info.context.user
+
+        if new_user.is_anonymous:
+            new_ok = False
+            return CreateNote(ok=new_ok)
+        else:
+            new_note = Note(title=title, content=content, user=new_user)
+            new_ok = True
+            new_note.save()
+            return CreateNote(note=new_note, ok=new_ok)
+
+class Mutation(graphene.ObjectType):
+    create_note = CreateNote.Field()
+
+
 
 # Add a schema and attach the query
-schema = graphene.Schema(query=Query)
+schema = graphene.Schema(query=Query, mutation=Mutation)
